@@ -132,10 +132,24 @@
     padding: 14px 16px;
     font: inherit;
     color: #0f172a;
+    caret-color: #0f172a;
+    color-scheme: light;
+    -webkit-text-fill-color: #0f172a;
     transition:
       border-color 0.2s ease,
       box-shadow 0.2s ease,
       background 0.2s ease;
+  }
+
+  input::placeholder {
+    color: #94a3b8;
+    -webkit-text-fill-color: #94a3b8;
+    opacity: 1;
+  }
+
+  option {
+    color: #0f172a;
+    background: #fff;
   }
 
   input:focus,
@@ -325,6 +339,27 @@
   .field select {
     background: rgba(15, 23, 42, 0.84);
     border-color: rgba(148, 163, 184, 0.2);
+    caret-color: #f8fafc;
+    color-scheme: dark;
+    -webkit-text-fill-color: #f8fafc;
+  }
+
+  .field input:focus,
+  .field select:focus {
+    background: rgba(15, 23, 42, 0.96);
+    border-color: #60a5fa;
+    color: #f8fafc;
+    -webkit-text-fill-color: #f8fafc;
+  }
+
+  .field input::placeholder {
+    color: #94a3b8;
+    -webkit-text-fill-color: #94a3b8;
+  }
+
+  .field option {
+    color: #f8fafc;
+    background: #0f172a;
   }
 
   .segment button,
