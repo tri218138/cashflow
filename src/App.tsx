@@ -116,6 +116,20 @@ function formatCompactVnd(value: number) {
   return `${value}`
 }
 
+function parseDigits(value: string) {
+  const digitsOnly = value.replace(/\D/g, '')
+  return digitsOnly === '' ? 0 : Number(digitsOnly)
+}
+
+function formatInputNumber(value: number | string) {
+  const digitsOnly = `${value}`.replace(/\D/g, '')
+  if (digitsOnly === '') {
+    return ''
+  }
+
+  return new Intl.NumberFormat('vi-VN').format(Number(digitsOnly))
+}
+
 function App() {
   const [scenario, setScenario] = useState<ScenarioState>(() => loadScenario())
   const [groupMode, setGroupMode] = useState<GroupMode>('day')
@@ -409,14 +423,13 @@ function App() {
               <label className="field">
                 <span>Initial balance</span>
                 <input
-                  type="number"
-                  min="0"
-                  step="100000"
-                  value={scenario.initialBalance}
+                  type="text"
+                  inputMode="numeric"
+                  value={formatInputNumber(scenario.initialBalance)}
                   onChange={(event) =>
                     setScenario((current) => ({
                       ...current,
-                      initialBalance: Number(event.target.value),
+                      initialBalance: parseDigits(event.target.value),
                     }))
                   }
                 />
@@ -539,11 +552,10 @@ function App() {
               <label className="field">
                 <span>Amount / occurrence</span>
                 <input
-                  type="number"
-                  min="0"
-                  step="10000"
-                  value={form.amount}
-                  onChange={(event) => updateForm('amount', Number(event.target.value))}
+                  type="text"
+                  inputMode="numeric"
+                  value={formatInputNumber(form.amount)}
+                  onChange={(event) => updateForm('amount', parseDigits(event.target.value))}
                 />
               </label>
 
@@ -573,12 +585,13 @@ function App() {
                 <label className="field">
                   <span>Weekend amount (optional)</span>
                   <input
-                    type="number"
-                    min="0"
-                    step="10000"
+                    type="text"
+                    inputMode="numeric"
                     placeholder="Khac amount thuong"
-                    value={form.weekendAmount}
-                    onChange={(event) => updateForm('weekendAmount', event.target.value)}
+                    value={formatInputNumber(form.weekendAmount)}
+                    onChange={(event) =>
+                      updateForm('weekendAmount', event.target.value.replace(/\D/g, ''))
+                    }
                   />
                 </label>
               )}
