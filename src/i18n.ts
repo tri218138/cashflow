@@ -50,11 +50,16 @@ type RawTranslation = {
   dayOfMonth: string
   month: string
   addToScenario: string
+  editEvent: string
+  editEventDescription: string
   activeEventsTitle: string
   defaultEventsDescription: string
+  clickEventToEdit: string
   disable: string
   enable: string
   delete: string
+  cancel: string
+  saveChanges: string
   newEvent: string
   noUpcomingActivity: string
   noDaysSelected: string

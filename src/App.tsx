@@ -79,6 +79,62 @@ function createDefaultForm(startDate: string): EventFormState {
   }
 }
 
+function createFormFromEvent(event: CashflowEvent): EventFormState {
+  return {
+    name: event.name,
+    kind: event.kind,
+    frequency: event.frequency,
+    amount: event.amount,
+    weekendAmount: event.weekendAmount ? String(event.weekendAmount) : '',
+    startDate: event.startDate,
+    timesPerOccurrence: event.timesPerOccurrence,
+    intervalDays: event.intervalDays ?? 7,
+    dayOfMonth: event.dayOfMonth ?? 1,
+    monthOfYear: event.monthOfYear ?? 1,
+    weekDays: event.weekDays ?? [1],
+  }
+}
+
+function buildEventFromForm(
+  formState: EventFormState,
+  fallbackName: string,
+  baseEvent?: Pick<CashflowEvent, 'id' | 'enabled'>,
+): CashflowEvent {
+  const name = formState.name.trim() || fallbackName
+  const event: CashflowEvent = {
+    id: baseEvent?.id ?? crypto.randomUUID(),
+    name,
+    kind: formState.kind,
+    frequency: formState.frequency,
+    amount: Math.max(0, formState.amount),
+    startDate: formState.startDate,
+    enabled: baseEvent?.enabled ?? true,
+    timesPerOccurrence: Math.max(1, formState.timesPerOccurrence),
+  }
+
+  if (formState.frequency === 'daily' && formState.weekendAmount) {
+    event.weekendAmount = Math.max(0, Number(formState.weekendAmount))
+  }
+
+  if (formState.frequency === 'weekly') {
+    event.weekDays = formState.weekDays.length > 0 ? formState.weekDays : [1]
+  }
+
+  if (formState.frequency === 'monthly' || formState.frequency === 'yearly') {
+    event.dayOfMonth = formState.dayOfMonth
+  }
+
+  if (formState.frequency === 'yearly') {
+    event.monthOfYear = formState.monthOfYear
+  }
+
+  if (formState.frequency === 'custom') {
+    event.intervalDays = Math.max(1, formState.intervalDays)
+  }
+
+  return event
+}
+
 function loadScenario() {
   const fallback = createDefaultScenario()
 
@@ -121,6 +177,8 @@ function App() {
   const [scenario, setScenario] = useState<ScenarioState>(() => loadScenario())
   const [groupMode, setGroupMode] = useState<GroupMode>('day')
   const [form, setForm] = useState<EventFormState>(() => createDefaultForm(DEFAULT_START_DATE))
+  const [editingEventId, setEditingEventId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState<EventFormState | null>(null)
   const t = translations[locale]
   const weekdayOptions = WEEKDAY_LABELS[locale].map((label, index) => ({
     value: index === 0 ? 0 : index,
@@ -147,6 +205,22 @@ function App() {
       startDate: current.startDate || scenario.startDate,
     }))
   }, [scenario.startDate])
+
+  useEffect(() => {
+    if (!editingEventId) {
+      return
+    }
+
+    function handleKeydown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setEditingEventId(null)
+        setEditForm(null)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeydown)
+    return () => window.removeEventListener('keydown', handleKeydown)
+  }, [editingEventId])
 
   const dailyPoints = useMemo(
     () =>
@@ -298,6 +372,10 @@ function App() {
     setForm((current) => ({ ...current, [key]: value }))
   }
 
+  function updateEditForm<K extends keyof EventFormState>(key: K, value: EventFormState[K]) {
+    setEditForm((current) => (current ? { ...current, [key]: value } : current))
+  }
+
   function toggleWeekday(day: number) {
     setForm((current) => {
       const exists = current.weekDays.includes(day)
@@ -310,38 +388,173 @@ function App() {
     })
   }
 
+  function toggleEditWeekday(day: number) {
+    setEditForm((current) => {
+      if (!current) {
+        return current
+      }
+
+      const exists = current.weekDays.includes(day)
+      return {
+        ...current,
+        weekDays: exists
+          ? current.weekDays.filter((item) => item !== day)
+          : [...current.weekDays, day].sort((a, b) => a - b),
+      }
+    })
+  }
+
+  function renderEventFormFields(
+    currentForm: EventFormState,
+    onUpdate: <K extends keyof EventFormState>(key: K, value: EventFormState[K]) => void,
+    onToggleWeekday: (day: number) => void,
+  ) {
+    return (
+      <div className="form-grid">
+        <label className="field field-span-2">
+          <span>{t.eventName}</span>
+          <input
+            type="text"
+            placeholder={t.eventNamePlaceholder}
+            value={currentForm.name}
+            onChange={(event) => onUpdate('name', event.target.value)}
+          />
+        </label>
+
+        <label className="field">
+          <span>{t.type}</span>
+          <select
+            value={currentForm.kind}
+            onChange={(event) => onUpdate('kind', event.target.value as EventKind)}
+          >
+            <option value="expense">{KIND_LABELS[locale].expense}</option>
+            <option value="income">{KIND_LABELS[locale].income}</option>
+          </select>
+        </label>
+
+        <label className="field">
+          <span>{t.frequency}</span>
+          <select
+            value={currentForm.frequency}
+            onChange={(event) => onUpdate('frequency', event.target.value as EventFrequency)}
+          >
+            <option value="daily">{FREQUENCY_LABELS[locale].daily}</option>
+            <option value="weekly">{FREQUENCY_LABELS[locale].weekly}</option>
+            <option value="monthly">{FREQUENCY_LABELS[locale].monthly}</option>
+            <option value="yearly">{FREQUENCY_LABELS[locale].yearly}</option>
+            <option value="custom">{FREQUENCY_LABELS[locale].custom}</option>
+          </select>
+        </label>
+
+        <label className="field">
+          <span>{t.amountPerOccurrence}</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={formatNumericInput(currentForm.amount, locale)}
+            onChange={(event) => onUpdate('amount', parseDigits(event.target.value))}
+          />
+        </label>
+
+        <label className="field">
+          <span>{t.startDate}</span>
+          <input
+            type="date"
+            value={currentForm.startDate}
+            onChange={(event) => onUpdate('startDate', event.target.value)}
+          />
+        </label>
+
+        <label className="field">
+          <span>{t.timesPerOccurrence}</span>
+          <input
+            type="number"
+            min="1"
+            step="1"
+            value={currentForm.timesPerOccurrence}
+            onChange={(event) => onUpdate('timesPerOccurrence', Number(event.target.value))}
+          />
+        </label>
+
+        {currentForm.frequency === 'daily' && (
+          <label className="field">
+            <span>{t.weekendAmountOptional}</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              placeholder={t.differentFromWeekdayAmount}
+              value={formatNumericInput(currentForm.weekendAmount, locale)}
+              onChange={(event) =>
+                onUpdate('weekendAmount', event.target.value.replace(/\D/g, ''))
+              }
+            />
+          </label>
+        )}
+
+        {currentForm.frequency === 'weekly' && (
+          <div className="field field-span-2">
+            <span>{t.weekdays}</span>
+            <div className="weekday-picker">
+              {weekdayOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={currentForm.weekDays.includes(option.value) ? 'is-active' : ''}
+                  onClick={() => onToggleWeekday(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {currentForm.frequency === 'custom' && (
+          <label className="field">
+            <span>{t.everyNDays}</span>
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={currentForm.intervalDays}
+              onChange={(event) => onUpdate('intervalDays', Number(event.target.value))}
+            />
+          </label>
+        )}
+
+        {(currentForm.frequency === 'monthly' || currentForm.frequency === 'yearly') && (
+          <label className="field">
+            <span>{t.dayOfMonth}</span>
+            <input
+              type="number"
+              min="1"
+              max="31"
+              step="1"
+              value={currentForm.dayOfMonth}
+              onChange={(event) => onUpdate('dayOfMonth', Number(event.target.value))}
+            />
+          </label>
+        )}
+
+        {currentForm.frequency === 'yearly' && (
+          <label className="field">
+            <span>{t.month}</span>
+            <input
+              type="number"
+              min="1"
+              max="12"
+              step="1"
+              value={currentForm.monthOfYear}
+              onChange={(event) => onUpdate('monthOfYear', Number(event.target.value))}
+            />
+          </label>
+        )}
+      </div>
+    )
+  }
+
   function addEvent() {
-    const name = form.name.trim() || t.newEvent
-    const event: CashflowEvent = {
-      id: crypto.randomUUID(),
-      name,
-      kind: form.kind,
-      frequency: form.frequency,
-      amount: Math.max(0, form.amount),
-      startDate: form.startDate,
-      enabled: true,
-      timesPerOccurrence: Math.max(1, form.timesPerOccurrence),
-    }
-
-    if (form.frequency === 'daily' && form.weekendAmount) {
-      event.weekendAmount = Math.max(0, Number(form.weekendAmount))
-    }
-
-    if (form.frequency === 'weekly') {
-      event.weekDays = form.weekDays.length > 0 ? form.weekDays : [1]
-    }
-
-    if (form.frequency === 'monthly' || form.frequency === 'yearly') {
-      event.dayOfMonth = form.dayOfMonth
-    }
-
-    if (form.frequency === 'yearly') {
-      event.monthOfYear = form.monthOfYear
-    }
-
-    if (form.frequency === 'custom') {
-      event.intervalDays = Math.max(1, form.intervalDays)
-    }
+    const event = buildEventFromForm(form, t.newEvent)
 
     setScenario((current) => ({
       ...current,
@@ -364,6 +577,39 @@ function App() {
       ...current,
       events: current.events.filter((event) => event.id !== eventId),
     }))
+    if (editingEventId === eventId) {
+      setEditingEventId(null)
+      setEditForm(null)
+    }
+  }
+
+  function openEventEditor(event: CashflowEvent) {
+    setEditingEventId(event.id)
+    setEditForm(createFormFromEvent(event))
+  }
+
+  function closeEventEditor() {
+    setEditingEventId(null)
+    setEditForm(null)
+  }
+
+  function saveEditedEvent() {
+    if (!editingEventId || !editForm) {
+      return
+    }
+
+    setScenario((current) => ({
+      ...current,
+      events: current.events.map((event) =>
+        event.id === editingEventId
+          ? buildEventFromForm(editForm, t.newEvent, {
+              id: event.id,
+              enabled: event.enabled,
+            })
+          : event,
+      ),
+    }))
+    closeEventEditor()
   }
 
   return (
@@ -545,150 +791,7 @@ function App() {
               </div>
             </div>
 
-            <div className="form-grid">
-              <label className="field field-span-2">
-                <span>{t.eventName}</span>
-                <input
-                  type="text"
-                  placeholder={t.eventNamePlaceholder}
-                  value={form.name}
-                  onChange={(event) => updateForm('name', event.target.value)}
-                />
-              </label>
-
-              <label className="field">
-                <span>{t.type}</span>
-                <select
-                  value={form.kind}
-                  onChange={(event) => updateForm('kind', event.target.value as EventKind)}
-                >
-                  <option value="expense">{KIND_LABELS[locale].expense}</option>
-                  <option value="income">{KIND_LABELS[locale].income}</option>
-                </select>
-              </label>
-
-              <label className="field">
-                <span>{t.frequency}</span>
-                <select
-                  value={form.frequency}
-                  onChange={(event) =>
-                    updateForm('frequency', event.target.value as EventFrequency)
-                  }
-                >
-                  <option value="daily">{FREQUENCY_LABELS[locale].daily}</option>
-                  <option value="weekly">{FREQUENCY_LABELS[locale].weekly}</option>
-                  <option value="monthly">{FREQUENCY_LABELS[locale].monthly}</option>
-                  <option value="yearly">{FREQUENCY_LABELS[locale].yearly}</option>
-                  <option value="custom">{FREQUENCY_LABELS[locale].custom}</option>
-                </select>
-              </label>
-
-              <label className="field">
-                <span>{t.amountPerOccurrence}</span>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={formatNumericInput(form.amount, locale)}
-                  onChange={(event) => updateForm('amount', parseDigits(event.target.value))}
-                />
-              </label>
-
-              <label className="field">
-                <span>{t.startDate}</span>
-                <input
-                  type="date"
-                  value={form.startDate}
-                  onChange={(event) => updateForm('startDate', event.target.value)}
-                />
-              </label>
-
-              <label className="field">
-                <span>{t.timesPerOccurrence}</span>
-                <input
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={form.timesPerOccurrence}
-                  onChange={(event) =>
-                    updateForm('timesPerOccurrence', Number(event.target.value))
-                  }
-                />
-              </label>
-
-              {form.frequency === 'daily' && (
-                <label className="field">
-                  <span>{t.weekendAmountOptional}</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    placeholder={t.differentFromWeekdayAmount}
-                    value={formatNumericInput(form.weekendAmount, locale)}
-                    onChange={(event) =>
-                      updateForm('weekendAmount', event.target.value.replace(/\D/g, ''))
-                    }
-                  />
-                </label>
-              )}
-
-              {form.frequency === 'weekly' && (
-                <div className="field field-span-2">
-                  <span>{t.weekdays}</span>
-                  <div className="weekday-picker">
-                    {weekdayOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        className={form.weekDays.includes(option.value) ? 'is-active' : ''}
-                        onClick={() => toggleWeekday(option.value)}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {form.frequency === 'custom' && (
-                <label className="field">
-                  <span>{t.everyNDays}</span>
-                  <input
-                    type="number"
-                    min="1"
-                    step="1"
-                    value={form.intervalDays}
-                    onChange={(event) => updateForm('intervalDays', Number(event.target.value))}
-                  />
-                </label>
-              )}
-
-              {(form.frequency === 'monthly' || form.frequency === 'yearly') && (
-                <label className="field">
-                  <span>{t.dayOfMonth}</span>
-                  <input
-                    type="number"
-                    min="1"
-                    max="31"
-                    step="1"
-                    value={form.dayOfMonth}
-                    onChange={(event) => updateForm('dayOfMonth', Number(event.target.value))}
-                  />
-                </label>
-              )}
-
-              {form.frequency === 'yearly' && (
-                <label className="field">
-                  <span>{t.month}</span>
-                  <input
-                    type="number"
-                    min="1"
-                    max="12"
-                    step="1"
-                    value={form.monthOfYear}
-                    onChange={(event) => updateForm('monthOfYear', Number(event.target.value))}
-                  />
-                </label>
-              )}
-            </div>
+            {renderEventFormFields(form, updateForm, toggleWeekday)}
 
             <button type="button" className="primary-button" onClick={addEvent}>
               {t.addToScenario}
@@ -699,13 +802,27 @@ function App() {
             <div className="panel-heading">
               <div>
                 <h2>{t.activeEventsTitle}</h2>
-                <p>{t.defaultEventsDescription}</p>
+                <p>
+                  {t.defaultEventsDescription} {t.clickEventToEdit}
+                </p>
               </div>
             </div>
 
             <div className="event-list">
               {scenario.events.map((event) => (
-                <article key={event.id} className={`event-card ${event.enabled ? '' : 'is-disabled'}`}>
+                <article
+                  key={event.id}
+                  className={`event-card ${event.enabled ? '' : 'is-disabled'}`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => openEventEditor(event)}
+                  onKeyDown={(keyboardEvent) => {
+                    if (keyboardEvent.key === 'Enter' || keyboardEvent.key === ' ') {
+                      keyboardEvent.preventDefault()
+                      openEventEditor(event)
+                    }
+                  }}
+                >
                   <div className="event-topline">
                     <div>
                       <h3>{getEventDisplayName(event.id, event.name, locale)}</h3>
@@ -717,10 +834,23 @@ function App() {
                   </div>
 
                   <div className="event-actions">
-                    <button type="button" onClick={() => toggleEvent(event.id)}>
+                    <button
+                      type="button"
+                      onClick={(clickEvent) => {
+                        clickEvent.stopPropagation()
+                        toggleEvent(event.id)
+                      }}
+                    >
                       {event.enabled ? t.disable : t.enable}
                     </button>
-                    <button type="button" className="ghost-danger" onClick={() => removeEvent(event.id)}>
+                    <button
+                      type="button"
+                      className="ghost-danger"
+                      onClick={(clickEvent) => {
+                        clickEvent.stopPropagation()
+                        removeEvent(event.id)
+                      }}
+                    >
                       {t.delete}
                     </button>
                   </div>
@@ -730,6 +860,36 @@ function App() {
           </article>
         </div>
       </section>
+
+      {editForm && (
+        <div className="modal-backdrop" onClick={closeEventEditor}>
+          <section
+            className="modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="edit-event-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="panel-heading">
+              <div>
+                <h2 id="edit-event-title">{t.editEvent}</h2>
+                <p>{t.editEventDescription}</p>
+              </div>
+            </div>
+
+            {renderEventFormFields(editForm, updateEditForm, toggleEditWeekday)}
+
+            <div className="modal-actions">
+              <button type="button" className="secondary-button" onClick={closeEventEditor}>
+                {t.cancel}
+              </button>
+              <button type="button" className="primary-button modal-primary" onClick={saveEditedEvent}>
+                {t.saveChanges}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   )
 }

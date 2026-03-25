@@ -37,11 +37,16 @@
   "dayOfMonth": "Day of month",
   "month": "Month",
   "addToScenario": "Add to scenario",
+  "editEvent": "Edit event",
+  "editEventDescription": "Update the event details and save your changes.",
   "activeEventsTitle": "Active events",
   "defaultEventsDescription": "Default data includes food spending, salary, and two birthday milestones.",
+  "clickEventToEdit": "Click an event to edit it.",
   "disable": "Disable",
   "enable": "Enable",
   "delete": "Delete",
+  "cancel": "Cancel",
+  "saveChanges": "Save changes",
   "newEvent": "New event",
   "noUpcomingActivity": "No upcoming events yet",
   "noDaysSelected": "no days selected",
@@ -59,7 +64,7 @@
     "week": "Week",
     "month": "Month"
   },
-  "weekdayLabels": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  "weekdayLabels": [ "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" ],
   "frequencyLabels": {
     "daily": "Daily",
     "weekly": "Weekly",
@@ -73,8 +78,6 @@
   },
   "eventDisplayNames": {
     "food-daily": "Food",
-    "salary-monthly": "Salary",
-    "birthday-march": "Birthday on Mar 1",
-    "birthday-august": "Birthday on Aug 1"
+    "salary-monthly": "Salary"
   }
 }
