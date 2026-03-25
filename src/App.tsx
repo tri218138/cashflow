@@ -634,7 +634,6 @@ function App() {
       <section className="hero-card">
         <div>
           <div className="hero-topline">
-            <span className="eyebrow">{t.heroEyebrow}</span>
             <div className="segment segment-compact">
               {LOCALE_OPTIONS.map((option) => (
                 <button

@@ -1,5 +1,4 @@
 {
-  "heroEyebrow": "Static React + TypeScript UI",
   "heroTitle": "Dự báo dòng tiền theo từng ngày",
   "heroDescription": "Day 0 bắt đầu với {{initialBalance}}. Mỗi event được lặp theo recurrence rule, tính lại balance mỗi ngày và vẽ thành 1 line chart có zoom.",
   "endingBalance": "Số dư cuối kỳ",

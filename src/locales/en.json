@@ -1,5 +1,4 @@
 {
-  "heroEyebrow": "Static React + TypeScript UI",
   "heroTitle": "Day-by-day cashflow forecast",
   "heroDescription": "Day 0 starts with {{initialBalance}}. Each event follows its recurrence rule, recalculates the daily balance, and feeds one zoomable line chart.",
   "endingBalance": "Ending balance",

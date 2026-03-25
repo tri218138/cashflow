@@ -12,7 +12,6 @@ export const LOCALE_OPTIONS: Array<{ value: Locale; label: string }> = [
 ]
 
 type RawTranslation = {
-  heroEyebrow: string
   heroTitle: string
   heroDescription: string
   endingBalance: string
