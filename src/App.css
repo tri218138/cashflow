@@ -1,0 +1,384 @@
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 32px;
+}
+
+.hero-card,
+.panel,
+.metric-card,
+.event-card,
+.timeline-item {
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(14px);
+}
+
+.hero-card {
+  border-radius: 28px;
+  padding: 32px;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 24px;
+  text-align: left;
+}
+
+.eyebrow {
+  display: inline-flex;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.12);
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.hero-copy {
+  max-width: 68ch;
+}
+
+.hero-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.metric-card {
+  border-radius: 22px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  span,
+  small {
+    color: #64748b;
+  }
+
+  strong {
+    color: #0f172a;
+    font-size: 28px;
+    line-height: 1.1;
+  }
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(360px, 0.9fr);
+  gap: 24px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.panel {
+  border-radius: 28px;
+  padding: 24px;
+  text-align: left;
+}
+
+.panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.panel-heading h2,
+.event-card h3 {
+  margin: 0;
+}
+
+.panel-heading p,
+.event-card p,
+.timeline-item p {
+  color: #64748b;
+}
+
+.control-grid,
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  span {
+    font-size: 14px;
+    font-weight: 600;
+    color: #334155;
+  }
+
+  input,
+  select {
+    appearance: none;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid #dbe4f0;
+    border-radius: 16px;
+    background: rgba(248, 250, 252, 0.92);
+    padding: 14px 16px;
+    font: inherit;
+    color: #0f172a;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease,
+      background 0.2s ease;
+  }
+
+  input:focus,
+  select:focus {
+    outline: none;
+    border-color: #60a5fa;
+    box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.16);
+    background: #fff;
+  }
+}
+
+.field-span-2 {
+  grid-column: span 2;
+}
+
+.segment,
+.weekday-picker,
+.event-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.segment button,
+.weekday-picker button,
+.event-actions button,
+.primary-button {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.segment button,
+.weekday-picker button,
+.event-actions button {
+  background: #eff6ff;
+  color: #1e3a8a;
+}
+
+.segment button:hover,
+.weekday-picker button:hover,
+.event-actions button:hover,
+.primary-button:hover {
+  transform: translateY(-1px);
+}
+
+.segment .is-active,
+.weekday-picker .is-active {
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.24);
+}
+
+.primary-button {
+  margin-top: 20px;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: #fff;
+  box-shadow: 0 18px 40px rgba(37, 99, 235, 0.24);
+}
+
+.chart {
+  height: 440px;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.timeline-item {
+  border-radius: 20px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.delta {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.positive {
+  color: #047857;
+}
+
+.negative {
+  color: #b91c1c;
+}
+
+.event-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.event-card {
+  border-radius: 22px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.event-card.is-disabled {
+  opacity: 0.56;
+}
+
+.event-topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 74px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.pill.income {
+  background: rgba(16, 185, 129, 0.14);
+  color: #047857;
+}
+
+.pill.expense {
+  background: rgba(239, 68, 68, 0.14);
+  color: #b91c1c;
+}
+
+.ghost-danger {
+  background: rgba(254, 226, 226, 0.84) !important;
+  color: #b91c1c !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .hero-card,
+  .panel,
+  .metric-card,
+  .event-card,
+  .timeline-item {
+    background: rgba(15, 23, 42, 0.76);
+    border-color: rgba(148, 163, 184, 0.18);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.28);
+  }
+
+  .eyebrow {
+    background: rgba(96, 165, 250, 0.18);
+    color: #bfdbfe;
+  }
+
+  .metric-card strong,
+  .field input,
+  .field select,
+  .panel-heading h2,
+  .event-card h3 {
+    color: #f8fafc;
+  }
+
+  .metric-card span,
+  .metric-card small,
+  .panel-heading p,
+  .event-card p,
+  .timeline-item p,
+  .field span {
+    color: #94a3b8;
+  }
+
+  .field input,
+  .field select {
+    background: rgba(15, 23, 42, 0.84);
+    border-color: rgba(148, 163, 184, 0.2);
+  }
+
+  .segment button,
+  .weekday-picker button,
+  .event-actions button {
+    background: rgba(37, 99, 235, 0.14);
+    color: #bfdbfe;
+  }
+
+  .ghost-danger {
+    background: rgba(127, 29, 29, 0.45) !important;
+    color: #fecaca !important;
+  }
+}
+
+@media (max-width: 1120px) {
+  .hero-card,
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-metrics {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-shell {
+    padding: 16px;
+  }
+
+  .hero-card,
+  .panel {
+    padding: 20px;
+    border-radius: 24px;
+  }
+
+  .control-grid,
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field-span-2 {
+    grid-column: span 1;
+  }
+
+  .panel-heading,
+  .event-topline,
+  .timeline-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .chart {
+    height: 360px;
+  }
+}
