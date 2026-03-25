@@ -14,27 +14,17 @@ import type {
   CashflowEvent,
   ChartPoint,
   DailyCashflowPoint,
-  EventFrequency,
 } from '../types'
+import {
+  FREQUENCY_LABELS,
+  formatCurrency,
+  type Locale,
+  translations,
+  WEEKDAY_LABELS,
+} from '../i18n'
 
-export const VND_FORMATTER = new Intl.NumberFormat('vi-VN', {
-  style: 'currency',
-  currency: 'VND',
-  maximumFractionDigits: 0,
-})
-
-const FREQUENCY_LABELS: Record<EventFrequency, string> = {
-  daily: 'Ngay',
-  weekly: 'Tuan',
-  monthly: 'Thang',
-  yearly: 'Nam',
-  custom: 'Custom',
-}
-
-const WEEKDAY_LABELS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
-
-export function formatVnd(value: number) {
-  return VND_FORMATTER.format(value)
+export function formatVnd(value: number, locale: Locale = 'vi') {
+  return formatCurrency(value, locale)
 }
 
 export function parseDate(dateText: string) {
@@ -155,27 +145,28 @@ export function listUpcomingActivity(points: DailyCashflowPoint[], today = new D
     .slice(0, 10)
 }
 
-export function formatEventRule(event: CashflowEvent) {
+export function formatEventRule(event: CashflowEvent, locale: Locale = 'vi') {
+  const t = translations[locale]
   const amount =
     event.weekendAmount && event.frequency === 'daily'
-      ? `${formatVnd(event.amount)} / cuoi tuan ${formatVnd(event.weekendAmount)}`
-      : formatVnd(event.amount)
+      ? `${formatVnd(event.amount, locale)} / ${t.weekends} ${formatVnd(event.weekendAmount, locale)}`
+      : formatVnd(event.amount, locale)
 
-  const multiplier = event.timesPerOccurrence > 1 ? ` x ${event.timesPerOccurrence}` : ''
+  const multiplier = event.timesPerOccurrence > 1 ? t.multiplier(event.timesPerOccurrence) : ''
 
   switch (event.frequency) {
     case 'daily':
-      return `Lap moi ngay tu ${event.startDate}, ${amount}${multiplier}`
+      return `${t.everyDayFrom} ${event.startDate}, ${amount}${multiplier}`
     case 'weekly':
-      return `Lap hang tuan vao ${formatWeekdays(event.weekDays ?? [])}, ${amount}${multiplier}`
+      return `${t.everyWeekOn} ${formatWeekdays(event.weekDays ?? [], locale)}, ${amount}${multiplier}`
     case 'monthly':
-      return `Lap ngay ${event.dayOfMonth ?? 1} hang thang, ${amount}${multiplier}`
+      return `${t.everyMonthOn} ${event.dayOfMonth ?? 1} ${t.eachMonth}, ${amount}${multiplier}`
     case 'yearly':
-      return `Lap ngay ${event.dayOfMonth ?? 1}/${event.monthOfYear ?? 1} moi nam, ${amount}${multiplier}`
+      return `${t.everyYearOn} ${event.dayOfMonth ?? 1}/${event.monthOfYear ?? 1} ${t.everyYearSuffix}, ${amount}${multiplier}`
     case 'custom':
-      return `Lap moi ${event.intervalDays ?? 1} ngay, ${amount}${multiplier}`
+      return `${t.everyCustomDays(event.intervalDays ?? 1)}, ${amount}${multiplier}`
     default:
-      return `${FREQUENCY_LABELS[event.frequency]}, ${amount}${multiplier}`
+      return `${FREQUENCY_LABELS[locale][event.frequency]}, ${amount}${multiplier}`
   }
 }
 
@@ -222,15 +213,16 @@ function getSignedAmount(event: CashflowEvent, currentDate: Date) {
   return event.kind === 'expense' ? -total : total
 }
 
-function formatWeekdays(days: number[]) {
+function formatWeekdays(days: number[], locale: Locale) {
+  const labels = WEEKDAY_LABELS[locale]
   if (days.length === 0) {
-    return 'khong co ngay'
+    return translations[locale].noDaysSelected
   }
 
   return days
     .slice()
     .sort((a, b) => a - b)
-    .map((day) => WEEKDAY_LABELS[day] ?? `${day}`)
+    .map((day) => labels[day] ?? `${day}`)
     .join(', ')
 }
 

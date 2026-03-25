@@ -16,25 +16,22 @@ import {
   groupChartPoints,
   listUpcomingActivity,
 } from './lib/cashflow'
+import {
+  FREQUENCY_LABELS,
+  formatCurrency,
+  formatNumericInput,
+  getEventDisplayName,
+  GROUP_LABELS,
+  KIND_LABELS,
+  LOCALE_OPTIONS,
+  STORAGE_LOCALE_KEY,
+  translations,
+  type Locale,
+  WEEKDAY_LABELS,
+} from './i18n'
 import type { CashflowEvent, EventFrequency, EventKind, GroupMode } from './types'
 
 const STORAGE_KEY = 'richman-cashflow-scenario-v1'
-
-const WEEKDAY_OPTIONS = [
-  { value: 1, label: 'T2' },
-  { value: 2, label: 'T3' },
-  { value: 3, label: 'T4' },
-  { value: 4, label: 'T5' },
-  { value: 5, label: 'T6' },
-  { value: 6, label: 'T7' },
-  { value: 0, label: 'CN' },
-]
-
-const GROUP_OPTIONS: Array<{ value: GroupMode; label: string }> = [
-  { value: 'day', label: 'Day' },
-  { value: 'week', label: 'Week' },
-  { value: 'month', label: 'Month' },
-]
 
 type ScenarioState = {
   initialBalance: number
@@ -102,18 +99,16 @@ function loadScenario() {
   }
 }
 
-function formatCompactVnd(value: number) {
-  const abs = Math.abs(value)
-  if (abs >= 1_000_000_000) {
-    return `${(value / 1_000_000_000).toFixed(1)}B`
-  }
-  if (abs >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(1)}M`
-  }
-  if (abs >= 1_000) {
-    return `${(value / 1_000).toFixed(0)}k`
-  }
-  return `${value}`
+function loadLocale(): Locale {
+  const raw = window.localStorage.getItem(STORAGE_LOCALE_KEY)
+  return raw === 'en' ? 'en' : 'vi'
+}
+
+function formatCompactVnd(value: number, locale: Locale) {
+  return new Intl.NumberFormat(locale === 'vi' ? 'vi-VN' : 'en-US', {
+    notation: 'compact',
+    maximumFractionDigits: 1,
+  }).format(value)
 }
 
 function parseDigits(value: string) {
@@ -121,23 +116,30 @@ function parseDigits(value: string) {
   return digitsOnly === '' ? 0 : Number(digitsOnly)
 }
 
-function formatInputNumber(value: number | string) {
-  const digitsOnly = `${value}`.replace(/\D/g, '')
-  if (digitsOnly === '') {
-    return ''
-  }
-
-  return new Intl.NumberFormat('vi-VN').format(Number(digitsOnly))
-}
-
 function App() {
+  const [locale, setLocale] = useState<Locale>(() => loadLocale())
   const [scenario, setScenario] = useState<ScenarioState>(() => loadScenario())
   const [groupMode, setGroupMode] = useState<GroupMode>('day')
   const [form, setForm] = useState<EventFormState>(() => createDefaultForm(DEFAULT_START_DATE))
+  const t = translations[locale]
+  const weekdayOptions = WEEKDAY_LABELS[locale].map((label, index) => ({
+    value: index === 0 ? 0 : index,
+    label,
+  }))
+  const groupOptions: Array<{ value: GroupMode; label: string }> = [
+    { value: 'day', label: GROUP_LABELS[locale].day },
+    { value: 'week', label: GROUP_LABELS[locale].week },
+    { value: 'month', label: GROUP_LABELS[locale].month },
+  ]
 
   useEffect(() => {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(scenario))
   }, [scenario])
+
+  useEffect(() => {
+    window.localStorage.setItem(STORAGE_LOCALE_KEY, locale)
+    document.documentElement.lang = locale
+  }, [locale])
 
   useEffect(() => {
     setForm((current) => ({
@@ -210,9 +212,9 @@ function App() {
           return [
             `<div style="min-width:180px">`,
             `<div style="font-size:12px;color:#94a3b8">${data.date}</div>`,
-            `<div style="font-size:16px;font-weight:700;margin-top:4px">${formatVnd(data.value)}</div>`,
-            `<div style="margin-top:6px">Net change: ${formatVnd(data.delta)}</div>`,
-            `<div style="margin-top:2px">Events: ${data.occurrenceCount}</div>`,
+            `<div style="font-size:16px;font-weight:700;margin-top:4px">${formatVnd(data.value, locale)}</div>`,
+            `<div style="margin-top:6px">${t.tooltipNetChange}: ${formatVnd(data.delta, locale)}</div>`,
+            `<div style="margin-top:2px">${t.tooltipEvents}: ${data.occurrenceCount}</div>`,
             `</div>`,
           ].join('')
         },
@@ -241,7 +243,7 @@ function App() {
         type: 'value',
         axisLabel: {
           color: '#64748b',
-          formatter: (value: number) => formatCompactVnd(value),
+          formatter: (value: number) => formatCompactVnd(value, locale),
         },
         splitLine: {
           lineStyle: {
@@ -290,7 +292,7 @@ function App() {
         },
       ],
     }
-  }, [chartPoints])
+  }, [chartPoints, locale, t.tooltipEvents, t.tooltipNetChange])
 
   function updateForm<K extends keyof EventFormState>(key: K, value: EventFormState[K]) {
     setForm((current) => ({ ...current, [key]: value }))
@@ -309,7 +311,7 @@ function App() {
   }
 
   function addEvent() {
-    const name = form.name.trim() || 'New event'
+    const name = form.name.trim() || t.newEvent
     const event: CashflowEvent = {
       id: crypto.randomUUID(),
       name,
@@ -368,29 +370,49 @@ function App() {
     <main className="app-shell">
       <section className="hero-card">
         <div>
-          <span className="eyebrow">Static React + TypeScript UI</span>
-          <h1>Cashflow forecast day-by-day</h1>
-          <p className="hero-copy">
-            Day 0 bat dau voi {formatVnd(scenario.initialBalance)}. Mỗi event se duoc lap theo
-            recurrence rule, tinh lai balance moi ngay va ve thanh 1 line chart co zoom.
-          </p>
+          <div className="hero-topline">
+            <span className="eyebrow">{t.heroEyebrow}</span>
+            <div className="segment segment-compact">
+              {LOCALE_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={option.value === locale ? 'is-active' : ''}
+                  onClick={() => setLocale(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <h1>{t.heroTitle}</h1>
+          <p className="hero-copy">{t.heroDescription(formatCurrency(scenario.initialBalance, locale))}</p>
         </div>
 
         <div className="hero-metrics">
           <article className="metric-card">
-            <span>Ending balance</span>
-            <strong>{formatVnd(summary.endingBalance)}</strong>
-            <small>{netChange >= 0 ? 'Tang' : 'Giam'} {formatVnd(Math.abs(netChange))}</small>
+            <span>{t.endingBalance}</span>
+            <strong>{formatVnd(summary.endingBalance, locale)}</strong>
+            <small>
+              {netChange >= 0 ? t.increase : t.decrease}{' '}
+              {formatVnd(Math.abs(netChange), locale)}
+            </small>
           </article>
           <article className="metric-card">
-            <span>Lowest point</span>
-            <strong>{formatVnd(summary.lowestBalance)}</strong>
-            <small>{summary.firstNegativeDay === null ? 'Chua am tien' : `Am tien tu day ${summary.firstNegativeDay}`}</small>
+            <span>{t.lowestPoint}</span>
+            <strong>{formatVnd(summary.lowestBalance, locale)}</strong>
+            <small>
+              {summary.firstNegativeDay === null
+                ? t.notNegativeYet
+                : t.negativeFromDay(summary.firstNegativeDay)}
+            </small>
           </article>
           <article className="metric-card">
-            <span>Forecast horizon</span>
-            <strong>{scenario.forecastDays} days</strong>
-            <small>{scenario.events.filter((event) => event.enabled).length} active events</small>
+            <span>{t.forecastHorizon}</span>
+            <strong>
+              {scenario.forecastDays} {t.days}
+            </strong>
+            <small>{t.activeEvents(scenario.events.filter((event) => event.enabled).length)}</small>
           </article>
         </div>
       </section>
@@ -400,14 +422,14 @@ function App() {
           <article className="panel">
             <div className="panel-heading">
               <div>
-                <h2>Scenario</h2>
-                <p>Tinh theo ngay, hien thi theo day/week/month.</p>
+                <h2>{t.scenario}</h2>
+                <p>{t.scenarioDescription}</p>
               </div>
             </div>
 
             <div className="control-grid">
               <label className="field">
-                <span>Start date</span>
+                <span>{t.startDate}</span>
                 <input
                   type="date"
                   value={scenario.startDate}
@@ -421,11 +443,11 @@ function App() {
               </label>
 
               <label className="field">
-                <span>Initial balance</span>
+                <span>{t.initialBalance}</span>
                 <input
                   type="text"
                   inputMode="numeric"
-                  value={formatInputNumber(scenario.initialBalance)}
+                  value={formatNumericInput(scenario.initialBalance, locale)}
                   onChange={(event) =>
                     setScenario((current) => ({
                       ...current,
@@ -436,7 +458,7 @@ function App() {
               </label>
 
               <label className="field">
-                <span>Forecast days</span>
+                <span>{t.forecastDays}</span>
                 <input
                   type="number"
                   min="30"
@@ -457,12 +479,12 @@ function App() {
           <article className="panel">
             <div className="panel-heading">
               <div>
-                <h2>Cashflow chart</h2>
-                <p>Zoom in/out bang mousewheel, pinch, hoac slider ben duoi.</p>
+                <h2>{t.cashflowChart}</h2>
+                <p>{t.chartDescription}</p>
               </div>
 
               <div className="segment">
-                {GROUP_OPTIONS.map((option) => (
+                {groupOptions.map((option) => (
                   <button
                     key={option.value}
                     type="button"
@@ -481,23 +503,35 @@ function App() {
           <article className="panel">
             <div className="panel-heading">
               <div>
-                <h2>Upcoming activity</h2>
-                <p>Cac ngay co event se duoc tong hop nhanh o day.</p>
+                <h2>{t.upcomingActivity}</h2>
+                <p>{t.upcomingDescription}</p>
               </div>
             </div>
 
             <div className="timeline">
-              {upcomingPoints.map((point) => (
-                <div key={point.date} className="timeline-item">
-                  <div>
-                    <strong>{point.date}</strong>
-                    <p>{point.occurrences.map((occurrence) => occurrence.name).join(', ')}</p>
-                  </div>
-                  <div className={point.delta >= 0 ? 'delta positive' : 'delta negative'}>
-                    {formatVnd(point.delta)}
-                  </div>
+              {upcomingPoints.length === 0 ? (
+                <div className="timeline-item">
+                  <p>{t.noUpcomingActivity}</p>
                 </div>
-              ))}
+              ) : (
+                upcomingPoints.map((point) => (
+                  <div key={point.date} className="timeline-item">
+                    <div>
+                      <strong>{point.date}</strong>
+                      <p>
+                        {point.occurrences
+                          .map((occurrence) =>
+                            getEventDisplayName(occurrence.eventId, occurrence.name, locale),
+                          )
+                          .join(', ')}
+                      </p>
+                    </div>
+                    <div className={point.delta >= 0 ? 'delta positive' : 'delta negative'}>
+                      {formatVnd(point.delta, locale)}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </article>
         </div>
@@ -506,61 +540,61 @@ function App() {
           <article className="panel">
             <div className="panel-heading">
               <div>
-                <h2>Add event</h2>
-                <p>Ho tro daily, weekly, monthly, yearly va custom interval.</p>
+                <h2>{t.addEvent}</h2>
+                <p>{t.addEventDescription}</p>
               </div>
             </div>
 
             <div className="form-grid">
               <label className="field field-span-2">
-                <span>Event name</span>
+                <span>{t.eventName}</span>
                 <input
                   type="text"
-                  placeholder="Vi du: Cafe, tien nha, freelance"
+                  placeholder={t.eventNamePlaceholder}
                   value={form.name}
                   onChange={(event) => updateForm('name', event.target.value)}
                 />
               </label>
 
               <label className="field">
-                <span>Type</span>
+                <span>{t.type}</span>
                 <select
                   value={form.kind}
                   onChange={(event) => updateForm('kind', event.target.value as EventKind)}
                 >
-                  <option value="expense">Expense</option>
-                  <option value="income">Income</option>
+                  <option value="expense">{KIND_LABELS[locale].expense}</option>
+                  <option value="income">{KIND_LABELS[locale].income}</option>
                 </select>
               </label>
 
               <label className="field">
-                <span>Frequency</span>
+                <span>{t.frequency}</span>
                 <select
                   value={form.frequency}
                   onChange={(event) =>
                     updateForm('frequency', event.target.value as EventFrequency)
                   }
                 >
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                  <option value="monthly">Monthly</option>
-                  <option value="yearly">Yearly</option>
-                  <option value="custom">Custom</option>
+                  <option value="daily">{FREQUENCY_LABELS[locale].daily}</option>
+                  <option value="weekly">{FREQUENCY_LABELS[locale].weekly}</option>
+                  <option value="monthly">{FREQUENCY_LABELS[locale].monthly}</option>
+                  <option value="yearly">{FREQUENCY_LABELS[locale].yearly}</option>
+                  <option value="custom">{FREQUENCY_LABELS[locale].custom}</option>
                 </select>
               </label>
 
               <label className="field">
-                <span>Amount / occurrence</span>
+                <span>{t.amountPerOccurrence}</span>
                 <input
                   type="text"
                   inputMode="numeric"
-                  value={formatInputNumber(form.amount)}
+                  value={formatNumericInput(form.amount, locale)}
                   onChange={(event) => updateForm('amount', parseDigits(event.target.value))}
                 />
               </label>
 
               <label className="field">
-                <span>Start date</span>
+                <span>{t.startDate}</span>
                 <input
                   type="date"
                   value={form.startDate}
@@ -569,7 +603,7 @@ function App() {
               </label>
 
               <label className="field">
-                <span>Times / occurrence</span>
+                <span>{t.timesPerOccurrence}</span>
                 <input
                   type="number"
                   min="1"
@@ -583,12 +617,12 @@ function App() {
 
               {form.frequency === 'daily' && (
                 <label className="field">
-                  <span>Weekend amount (optional)</span>
+                  <span>{t.weekendAmountOptional}</span>
                   <input
                     type="text"
                     inputMode="numeric"
-                    placeholder="Khac amount thuong"
-                    value={formatInputNumber(form.weekendAmount)}
+                    placeholder={t.differentFromWeekdayAmount}
+                    value={formatNumericInput(form.weekendAmount, locale)}
                     onChange={(event) =>
                       updateForm('weekendAmount', event.target.value.replace(/\D/g, ''))
                     }
@@ -598,9 +632,9 @@ function App() {
 
               {form.frequency === 'weekly' && (
                 <div className="field field-span-2">
-                  <span>Weekdays</span>
+                  <span>{t.weekdays}</span>
                   <div className="weekday-picker">
-                    {WEEKDAY_OPTIONS.map((option) => (
+                    {weekdayOptions.map((option) => (
                       <button
                         key={option.value}
                         type="button"
@@ -616,7 +650,7 @@ function App() {
 
               {form.frequency === 'custom' && (
                 <label className="field">
-                  <span>Every N days</span>
+                  <span>{t.everyNDays}</span>
                   <input
                     type="number"
                     min="1"
@@ -629,7 +663,7 @@ function App() {
 
               {(form.frequency === 'monthly' || form.frequency === 'yearly') && (
                 <label className="field">
-                  <span>Day of month</span>
+                  <span>{t.dayOfMonth}</span>
                   <input
                     type="number"
                     min="1"
@@ -643,7 +677,7 @@ function App() {
 
               {form.frequency === 'yearly' && (
                 <label className="field">
-                  <span>Month</span>
+                  <span>{t.month}</span>
                   <input
                     type="number"
                     min="1"
@@ -657,15 +691,15 @@ function App() {
             </div>
 
             <button type="button" className="primary-button" onClick={addEvent}>
-              Add to scenario
+              {t.addToScenario}
             </button>
           </article>
 
           <article className="panel">
             <div className="panel-heading">
               <div>
-                <h2>Active events</h2>
-                <p>Mau du lieu mac dinh da gom tien an, luong va 2 moc sinh nhat.</p>
+                <h2>{t.activeEventsTitle}</h2>
+                <p>{t.defaultEventsDescription}</p>
               </div>
             </div>
 
@@ -674,20 +708,20 @@ function App() {
                 <article key={event.id} className={`event-card ${event.enabled ? '' : 'is-disabled'}`}>
                   <div className="event-topline">
                     <div>
-                      <h3>{event.name}</h3>
-                      <p>{formatEventRule(event)}</p>
+                      <h3>{getEventDisplayName(event.id, event.name, locale)}</h3>
+                      <p>{formatEventRule(event, locale)}</p>
                     </div>
                     <span className={event.kind === 'income' ? 'pill income' : 'pill expense'}>
-                      {event.kind}
+                      {KIND_LABELS[locale][event.kind]}
                     </span>
                   </div>
 
                   <div className="event-actions">
                     <button type="button" onClick={() => toggleEvent(event.id)}>
-                      {event.enabled ? 'Disable' : 'Enable'}
+                      {event.enabled ? t.disable : t.enable}
                     </button>
                     <button type="button" className="ghost-danger" onClick={() => removeEvent(event.id)}>
-                      Delete
+                      {t.delete}
                     </button>
                   </div>
                 </article>

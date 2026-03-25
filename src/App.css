@@ -41,6 +41,14 @@
   max-width: 68ch;
 }
 
+.hero-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 .hero-metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -171,6 +179,10 @@
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.segment-compact button {
+  min-width: 56px;
 }
 
 .segment button,
