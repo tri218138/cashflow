@@ -14,6 +14,7 @@
   "scenario": "Scenario",
   "scenarioDescription": "Calculated daily, viewable by day, week, or month.",
   "startDate": "Start date",
+  "endDate": "End date",
   "initialBalance": "Initial balance",
   "forecastDays": "Forecast days",
   "cashflowChart": "Cashflow chart",
@@ -57,6 +58,7 @@
   "eachMonth": "each month",
   "everyYearOn": "Repeats on",
   "everyYearSuffix": "every year",
+  "untilDate": "until",
   "everyCustomDays": "Repeats every {{days}} days",
   "multiplier": " x {{count}}",
   "groupLabels": {

@@ -27,6 +27,7 @@ type RawTranslation = {
   scenario: string
   scenarioDescription: string
   startDate: string
+  endDate: string
   initialBalance: string
   forecastDays: string
   cashflowChart: string
@@ -70,6 +71,7 @@ type RawTranslation = {
   eachMonth: string
   everyYearOn: string
   everyYearSuffix: string
+  untilDate: string
   everyCustomDays: string
   multiplier: string
   groupLabels: Record<GroupMode, string>

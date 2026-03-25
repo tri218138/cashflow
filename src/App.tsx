@@ -47,6 +47,7 @@ type EventFormState = {
   amount: number
   weekendAmount: string
   startDate: string
+  endDate: string
   timesPerOccurrence: number
   intervalDays: number
   dayOfMonth: number
@@ -71,6 +72,7 @@ function createDefaultForm(startDate: string): EventFormState {
     amount: 100_000,
     weekendAmount: '',
     startDate,
+    endDate: '',
     timesPerOccurrence: 1,
     intervalDays: 7,
     dayOfMonth: 1,
@@ -87,6 +89,7 @@ function createFormFromEvent(event: CashflowEvent): EventFormState {
     amount: event.amount,
     weekendAmount: event.weekendAmount ? String(event.weekendAmount) : '',
     startDate: event.startDate,
+    endDate: event.endDate ?? '',
     timesPerOccurrence: event.timesPerOccurrence,
     intervalDays: event.intervalDays ?? 7,
     dayOfMonth: event.dayOfMonth ?? 1,
@@ -110,6 +113,10 @@ function buildEventFromForm(
     startDate: formState.startDate,
     enabled: baseEvent?.enabled ?? true,
     timesPerOccurrence: Math.max(1, formState.timesPerOccurrence),
+  }
+
+  if (formState.endDate) {
+    event.endDate = formState.endDate
   }
 
   if (formState.frequency === 'daily' && formState.weekendAmount) {
@@ -462,6 +469,16 @@ function App() {
             type="date"
             value={currentForm.startDate}
             onChange={(event) => onUpdate('startDate', event.target.value)}
+          />
+        </label>
+
+        <label className="field">
+          <span>{t.endDate}</span>
+          <input
+            type="date"
+            min={currentForm.startDate || undefined}
+            value={currentForm.endDate}
+            onChange={(event) => onUpdate('endDate', event.target.value)}
           />
         </label>
 

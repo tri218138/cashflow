@@ -14,6 +14,7 @@
   "scenario": "Scenario",
   "scenarioDescription": "Tính theo ngày, hiển thị theo day/week/month.",
   "startDate": "Ngày bắt đầu",
+  "endDate": "Ngày kết thúc",
   "initialBalance": "Số dư ban đầu",
   "forecastDays": "Số ngày dự báo",
   "cashflowChart": "Cashflow chart",
@@ -57,6 +58,7 @@
   "eachMonth": "hàng tháng",
   "everyYearOn": "Lặp ngày",
   "everyYearSuffix": "mỗi năm",
+  "untilDate": "đến",
   "everyCustomDays": "Lặp mỗi {{days}} ngày",
   "multiplier": " x {{count}}",
   "groupLabels": {

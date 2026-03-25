@@ -153,27 +153,33 @@ export function formatEventRule(event: CashflowEvent, locale: Locale = 'vi') {
       : formatVnd(event.amount, locale)
 
   const multiplier = event.timesPerOccurrence > 1 ? t.multiplier(event.timesPerOccurrence) : ''
+  const endDateSuffix = event.endDate ? `, ${t.untilDate} ${event.endDate}` : ''
 
   switch (event.frequency) {
     case 'daily':
-      return `${t.everyDayFrom} ${event.startDate}, ${amount}${multiplier}`
+      return `${t.everyDayFrom} ${event.startDate}${endDateSuffix}, ${amount}${multiplier}`
     case 'weekly':
-      return `${t.everyWeekOn} ${formatWeekdays(event.weekDays ?? [], locale)}, ${amount}${multiplier}`
+      return `${t.everyWeekOn} ${formatWeekdays(event.weekDays ?? [], locale)}${endDateSuffix}, ${amount}${multiplier}`
     case 'monthly':
-      return `${t.everyMonthOn} ${event.dayOfMonth ?? 1} ${t.eachMonth}, ${amount}${multiplier}`
+      return `${t.everyMonthOn} ${event.dayOfMonth ?? 1} ${t.eachMonth}${endDateSuffix}, ${amount}${multiplier}`
     case 'yearly':
-      return `${t.everyYearOn} ${event.dayOfMonth ?? 1}/${event.monthOfYear ?? 1} ${t.everyYearSuffix}, ${amount}${multiplier}`
+      return `${t.everyYearOn} ${event.dayOfMonth ?? 1}/${event.monthOfYear ?? 1} ${t.everyYearSuffix}${endDateSuffix}, ${amount}${multiplier}`
     case 'custom':
-      return `${t.everyCustomDays(event.intervalDays ?? 1)}, ${amount}${multiplier}`
+      return `${t.everyCustomDays(event.intervalDays ?? 1)}${endDateSuffix}, ${amount}${multiplier}`
     default:
-      return `${FREQUENCY_LABELS[locale][event.frequency]}, ${amount}${multiplier}`
+      return `${FREQUENCY_LABELS[locale][event.frequency]}${endDateSuffix}, ${amount}${multiplier}`
   }
 }
 
 function occursOnDate(event: CashflowEvent, currentDate: Date) {
   const eventStart = parseDate(event.startDate)
+  const eventEnd = event.endDate ? parseDate(event.endDate) : null
 
   if (isBefore(currentDate, eventStart)) {
+    return false
+  }
+
+  if (eventEnd && isAfter(currentDate, eventEnd)) {
     return false
   }
 

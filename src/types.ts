@@ -11,6 +11,7 @@ export interface CashflowEvent {
   frequency: EventFrequency
   amount: number
   startDate: string
+  endDate?: string
   enabled: boolean
   timesPerOccurrence: number
   weekendAmount?: number
