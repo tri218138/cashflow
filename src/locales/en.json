@@ -1,6 +1,8 @@
 {
   "heroTitle": "Day-by-day cashflow forecast",
   "heroDescription": "Day 0 starts with {{initialBalance}}. Each event follows its recurrence rule, recalculates the daily balance, and feeds one zoomable line chart.",
+  "starRepo": "Star this repo on GitHub",
+  "starRepoHint": "If this project helps you, give the repository a star.",
   "endingBalance": "Ending balance",
   "increase": "Up",
   "decrease": "Down",

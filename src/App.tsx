@@ -649,6 +649,27 @@ function App() {
           </div>
           <h1>{t.heroTitle}</h1>
           <p className="hero-copy">{t.heroDescription(formatCurrency(scenario.initialBalance, locale))}</p>
+          <div className="hero-actions">
+            <a
+              className="github-star-link"
+              href="https://github.com/tri218138/cashflow"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <svg
+                className="github-star-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  d="M12 3.75l2.55 5.18 5.72.83-4.14 4.03.98 5.7L12 16.81l-5.11 2.68.98-5.7-4.14-4.03 5.72-.83L12 3.75z"
+                  fill="currentColor"
+                />
+              </svg>
+              {t.starRepo}
+            </a>
+            <span className="hero-hint">{t.starRepoHint}</span>
+          </div>
         </div>
 
         <div className="hero-metrics">

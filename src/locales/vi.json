@@ -1,6 +1,8 @@
 {
   "heroTitle": "Dự báo dòng tiền theo từng ngày",
   "heroDescription": "Ngày 0 bắt đầu với {{initialBalance}}. Mỗi sự kiện tuân theo quy tắc lặp lại, tính toán lại số dư hàng ngày và tạo thành một biểu đồ đường có thể phóng to.",
+  "starRepo": "Star repo trên GitHub",
+  "starRepoHint": "Nếu thấy hữu ích, hãy dành cho repo này một ngôi sao.",
   "endingBalance": "Số dư cuối kỳ",
   "increase": "Tăng",
   "decrease": "Giảm",

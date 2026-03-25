@@ -29,6 +29,47 @@
   max-width: 68ch;
 }
 
+.hero-actions {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.github-star-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 11px 16px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #111827, #1f2937);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.github-star-link:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.22);
+}
+
+.github-star-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.hero-hint {
+  color: #64748b;
+  font-size: 14px;
+}
+
 .hero-topline {
   display: flex;
   align-items: center;
@@ -384,7 +425,8 @@
   .panel-heading p,
   .event-card p,
   .timeline-item p,
-  .field span {
+  .field span,
+  .hero-hint {
     color: #94a3b8;
   }
 
