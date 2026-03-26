@@ -42,7 +42,7 @@
   "editEvent": "Edit event",
   "editEventDescription": "Update the event details and save your changes.",
   "activeEventsTitle": "Active events",
-  "defaultEventsDescription": "Default data includes food spending, salary, and two birthday milestones.",
+  "defaultEventsDescription": "Default data includes food spending, salary, family support, rent, and an annual birthday milestone.",
   "clickEventToEdit": "Click an event to edit it.",
   "disable": "Disable",
   "enable": "Enable",
@@ -81,6 +81,9 @@
   },
   "eventDisplayNames": {
     "food-daily": "Food",
-    "salary-monthly": "Salary"
+    "salary-monthly": "Salary",
+    "family-support-monthly": "Family support",
+    "rent-monthly": "Rent",
+    "birthday-march": "Birthday on Mar 28"
   }
 }

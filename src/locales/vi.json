@@ -42,7 +42,7 @@
   "editEvent": "Chỉnh sửa sự kiện",
   "editEventDescription": "Cập nhật thông tin sự kiện rồi lưu thay đổi.",
   "activeEventsTitle": "Sự kiện đang bật",
-  "defaultEventsDescription": "Mẫu dữ liệu mặc định đã gồm tiền ăn, lương và 2 ngày sinh nhật.",
+  "defaultEventsDescription": "Mẫu dữ liệu mặc định đã gồm tiền ăn, lương, tiền gửi gia đình, tiền trọ và sinh nhật hằng năm.",
   "clickEventToEdit": "Nhấn vào một sự kiện để chỉnh sửa.",
   "disable": "Tắt",
   "enable": "Bật",
@@ -81,6 +81,9 @@
   },
   "eventDisplayNames": {
     "food-daily": "Tiền ăn",
-    "salary-monthly": "Lương"
+    "salary-monthly": "Lương",
+    "family-support-monthly": "Gửi về gia đình",
+    "rent-monthly": "Tiền trọ",
+    "birthday-march": "Sinh nhật 28/3"
   }
 }
