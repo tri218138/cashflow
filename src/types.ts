@@ -43,4 +43,5 @@ export interface ChartPoint {
   delta: number
   balance: number
   occurrenceCount: number
+  occurrences: CashflowOccurrence[]
 }

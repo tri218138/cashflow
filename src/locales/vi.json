@@ -22,6 +22,8 @@
   "chartDescription": "Zoom in/out bằng chuột, phóng to/thu nhỏ bằng cách cuộn chuột, hoặc thanh trượt bên dưới.",
   "tooltipNetChange": "Biến động ròng",
   "tooltipEvents": "Số sự kiện",
+  "tooltipGroupedEvents": "Các khoản phát sinh",
+  "tooltipNoEvents": "Không có sự kiện",
   "upcomingActivity": "Sự kiện sắp tới",
   "upcomingDescription": "Các ngày có sự kiện sẽ được tổng hợp nhanh ở đây.",
   "addEvent": "Thêm sự kiện",

@@ -35,6 +35,8 @@ type RawTranslation = {
   chartDescription: string
   tooltipNetChange: string
   tooltipEvents: string
+  tooltipGroupedEvents: string
+  tooltipNoEvents: string
   upcomingActivity: string
   upcomingDescription: string
   addEvent: string

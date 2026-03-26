@@ -80,6 +80,7 @@ export function groupChartPoints(
       delta: point.delta,
       balance: point.balance,
       occurrenceCount: point.occurrences.length,
+      occurrences: point.occurrences,
     }))
   }
 
@@ -101,6 +102,7 @@ export function groupChartPoints(
     const lastPoint = group[group.length - 1]
     const delta = group.reduce((sum, point) => sum + point.delta, 0)
     const occurrenceCount = group.reduce((sum, point) => sum + point.occurrences.length, 0)
+    const occurrences = group.flatMap((point) => point.occurrences)
     const date = parseDate(lastPoint.date)
     const label =
       mode === 'week'
@@ -117,6 +119,7 @@ export function groupChartPoints(
       delta,
       balance: lastPoint.balance,
       occurrenceCount,
+      occurrences,
     }
   })
 }

@@ -29,7 +29,13 @@ import {
   type Locale,
   WEEKDAY_LABELS,
 } from './i18n'
-import type { CashflowEvent, EventFrequency, EventKind, GroupMode } from './types'
+import type {
+  CashflowEvent,
+  CashflowOccurrence,
+  EventFrequency,
+  EventKind,
+  GroupMode,
+} from './types'
 
 const STORAGE_KEY = 'richman-cashflow-scenario-v1'
 
@@ -179,6 +185,44 @@ function parseDigits(value: string) {
   return digitsOnly === '' ? 0 : Number(digitsOnly)
 }
 
+function escapeHtml(value: string) {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+}
+
+function groupOccurrencesForTooltip(occurrences: CashflowOccurrence[], locale: Locale) {
+  const grouped = new Map<
+    string,
+    { eventId: string; name: string; totalSignedAmount: number; count: number }
+  >()
+
+  for (const occurrence of occurrences) {
+    const existing = grouped.get(occurrence.eventId)
+    if (existing) {
+      existing.totalSignedAmount += occurrence.signedAmount
+      existing.count += 1
+      continue
+    }
+
+    grouped.set(occurrence.eventId, {
+      eventId: occurrence.eventId,
+      name: getEventDisplayName(occurrence.eventId, occurrence.name, locale),
+      totalSignedAmount: occurrence.signedAmount,
+      count: 1,
+    })
+  }
+
+  return Array.from(grouped.values()).sort(
+    (left, right) =>
+      Math.abs(right.totalSignedAmount) - Math.abs(left.totalSignedAmount) ||
+      left.name.localeCompare(right.name),
+  )
+}
+
 function App() {
   const [locale, setLocale] = useState<Locale>(() => loadLocale())
   const [scenario, setScenario] = useState<ScenarioState>(() => loadScenario())
@@ -261,6 +305,8 @@ function App() {
       date: point.date,
       delta: point.delta,
       occurrenceCount: point.occurrenceCount,
+      occurrences: point.occurrences,
+      tooltipTitle: groupMode === 'day' ? point.date : point.label,
     }))
 
     return {
@@ -283,6 +329,8 @@ function App() {
                 date: string
                 delta: number
                 occurrenceCount: number
+                occurrences: CashflowOccurrence[]
+                tooltipTitle: string
               }
             | undefined
 
@@ -290,12 +338,33 @@ function App() {
             return ''
           }
 
+          const groupedOccurrences = groupOccurrencesForTooltip(data.occurrences, locale)
+          const groupedOccurrenceRows =
+            groupedOccurrences.length === 0
+              ? `<div style="margin-top:6px;color:#94a3b8">${t.tooltipNoEvents}</div>`
+              : groupedOccurrences
+                  .map((occurrence) => {
+                    const countSuffix = occurrence.count > 1 ? ` x${occurrence.count}` : ''
+                    const amountColor =
+                      occurrence.totalSignedAmount >= 0 ? '#86efac' : '#fca5a5'
+
+                    return [
+                      `<div style="display:flex;justify-content:space-between;gap:12px;margin-top:6px">`,
+                      `<span style="color:#e2e8f0">${escapeHtml(occurrence.name)}${countSuffix}</span>`,
+                      `<strong style="color:${amountColor}">${formatVnd(occurrence.totalSignedAmount, locale)}</strong>`,
+                      `</div>`,
+                    ].join('')
+                  })
+                  .join('')
+
           return [
-            `<div style="min-width:180px">`,
-            `<div style="font-size:12px;color:#94a3b8">${data.date}</div>`,
+            `<div style="min-width:220px">`,
+            `<div style="font-size:12px;color:#94a3b8">${escapeHtml(data.tooltipTitle)}</div>`,
             `<div style="font-size:16px;font-weight:700;margin-top:4px">${formatVnd(data.value, locale)}</div>`,
             `<div style="margin-top:6px">${t.tooltipNetChange}: ${formatVnd(data.delta, locale)}</div>`,
             `<div style="margin-top:2px">${t.tooltipEvents}: ${data.occurrenceCount}</div>`,
+            `<div style="margin-top:10px;font-size:12px;color:#94a3b8">${t.tooltipGroupedEvents}</div>`,
+            groupedOccurrenceRows,
             `</div>`,
           ].join('')
         },
@@ -373,7 +442,15 @@ function App() {
         },
       ],
     }
-  }, [chartPoints, locale, t.tooltipEvents, t.tooltipNetChange])
+  }, [
+    chartPoints,
+    groupMode,
+    locale,
+    t.tooltipEvents,
+    t.tooltipGroupedEvents,
+    t.tooltipNetChange,
+    t.tooltipNoEvents,
+  ])
 
   function updateForm<K extends keyof EventFormState>(key: K, value: EventFormState[K]) {
     setForm((current) => ({ ...current, [key]: value }))

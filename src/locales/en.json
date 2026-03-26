@@ -22,6 +22,8 @@
   "chartDescription": "Zoom with mousewheel, pinch, or the slider below.",
   "tooltipNetChange": "Net change",
   "tooltipEvents": "Events",
+  "tooltipGroupedEvents": "Grouped events",
+  "tooltipNoEvents": "No events",
   "upcomingActivity": "Upcoming activity",
   "upcomingDescription": "Quick summary of days that have scheduled events.",
   "addEvent": "Add event",
